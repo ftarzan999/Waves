@@ -47,7 +47,9 @@ inTask(docker)(
     buildOptions := BuildOptions(removeIntermediateContainers = BuildOptions.Remove.OnSuccess)
   ))
 
-libraryDependencies ++= Dependencies.testKit ++ Dependencies.itKit
+libraryDependencies ++= Dependencies.itKit
+
+dependencyOverrides ++= Dependencies.EnforcedVersions.value
 
 val logDirectory = Def.task {
   val runId = Option(System.getenv("RUN_ID")).getOrElse {

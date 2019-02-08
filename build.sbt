@@ -1,7 +1,7 @@
+import com.typesafe.sbt.SbtNativePackager.Universal
 import com.typesafe.sbt.packager.archetypes.TemplateWriter
-import sbt.Keys.{sourceGenerators, _}
+import sbt.Keys._
 import sbt._
-import sbt.internal.inc.ReflectUtilities
 import sbtassembly.MergeStrategy
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
@@ -49,6 +49,7 @@ inThisBuild(
     scalaVersion := "2.12.8",
     organization := "com.wavesplatform",
     crossPaths := false,
+    dependencyOverrides ++= Dependencies.EnforcedVersions.value,
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
@@ -217,11 +218,6 @@ commands += Command.command("packageAll") { state =>
   "clean" :: "assembly" :: "debian:packageBin" :: state
 }
 
-// https://stackoverflow.com/a/48592704/4050580
-def allProjects: List[ProjectReference] = ReflectUtilities.allVals[Project](this).values.toList map { p =>
-  p: ProjectReference
-}
-
 addCommandAlias(
   "checkPR",
   // set scalacOptions in ThisBuild ++= Seq("-Xfatal-warnings");
@@ -234,7 +230,7 @@ addCommandAlias(
 lazy val checkPRRaw = taskKey[Unit]("Build a project and run unit tests")
 checkPRRaw in Global := {
   try {
-    clean.all(ScopeFilter(inProjects(allProjects: _*), inConfigurations(Compile))).value
+    clean.all(ScopeFilter(inAnyProject)).value
   } finally {
     test.all(ScopeFilter(inProjects(langJVM, node, commonJVM), inConfigurations(Test))).value
     (langJS / Compile / fastOptJS).value
@@ -246,7 +242,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
   .withoutSuffixFor(JVMPlatform)
   .disablePlugins(ProtocPlugin)
   .settings(
-    libraryDependencies ++= Dependencies.scalatest
+    libraryDependencies += Dependencies.ScalaTest % "test"
   )
 
 lazy val commonJS  = common.js
@@ -256,34 +252,21 @@ lazy val lang =
   crossProject(JSPlatform, JVMPlatform)
     .withoutSuffixFor(JVMPlatform)
     .disablePlugins(ProtocPlugin)
+    .dependsOn(common % "compile->compile;test->test")
     .settings(
       version := "1.0.0",
       coverageExcludedPackages := ".*",
-      // the following line forces scala version across all dependencies
-      scalaModuleInfo ~= (_.map(_.withOverrideScalaVersion(true))),
       test in assembly := {},
-      addCompilerPlugin(Dependencies.kindProjector),
-      addCompilerPlugin(Dependencies.betterFor),
       libraryDependencies ++=
-        Dependencies.cats ++
-          Dependencies.fp ++
-          Dependencies.scalacheck ++
-          Dependencies.scorex ++
-          Dependencies.scalatest ++
-          Dependencies.scalactic ++
-          Dependencies.monix.value ++
-          Dependencies.fastparse.value,
+        Dependencies.Lang.value ++
+          Dependencies.Test,
       resolvers += Resolver.bintrayIvyRepo("portable-scala", "sbt-plugins"),
       resolvers += Resolver.sbtPluginRepo("releases")
     )
     .jsSettings(
       scalaJSLinkerConfig ~= {
         _.withModuleKind(ModuleKind.CommonJSModule)
-      },
-      libraryDependencies ++= Seq(
-        "org.rudogma" %%% "supertagged" % "1.4",
-        "com.chuusai" %%% "shapeless"   % "2.3.3"
-      )
+      }
     )
     .jvmSettings(
       coverageExcludedPackages := "",
@@ -300,60 +283,47 @@ lazy val lang =
       organizationHomepage := Some(url("https://wavesplatform.com")),
       scmInfo := Some(ScmInfo(url("https://github.com/wavesplatform/Waves"), "git@github.com:wavesplatform/Waves.git", None)),
       developers := List(Developer("petermz", "Peter Zhelezniakov", "peterz@rambler.ru", url("https://wavesplatform.com"))),
-      libraryDependencies ++= Dependencies.meta ++
+      libraryDependencies ++=
         Seq(
           "org.scala-js"                      %% "scalajs-stubs" % "1.0.0-RC1" % "provided",
-          "com.github.spullara.mustache.java" % "compiler" % "0.9.5"
-        ) ++ Dependencies.logging.map(_       % "test") // scrypto logs an error if a signature verification was failed
+          "com.github.spullara.mustache.java" % "compiler"       % "0.9.5"
+        )
     )
 
-lazy val langJS  = lang.js.dependsOn(commonJS)
-lazy val langJVM = lang.jvm.dependsOn(commonJVM)
+lazy val langJS  = lang.js
+lazy val langJVM = lang.jvm
 
 lazy val node = project
   .in(file("."))
   .settings(
-    addCompilerPlugin(Dependencies.kindProjector),
     coverageExcludedPackages := "",
-    libraryDependencies ++=
-      Dependencies.network ++
-        Dependencies.db ++
-        Dependencies.http ++
-        Dependencies.akka ++
-        Dependencies.serialization ++
-        Dependencies.testKit.map(_ % Test) ++
-        Dependencies.logging ++
-        Dependencies.matcher ++
-        Dependencies.metrics ++
-        Dependencies.fp ++
-        Dependencies.meta ++
-        Dependencies.ficus ++
-        Dependencies.scorex ++
-        Dependencies.commons_net ++
-        Dependencies.monix.value ++
-        Dependencies.protobuf.value ++
-        Dependencies.grpc,
-    dependencyOverrides ++= Seq(
-      Dependencies.AkkaActor,
-      Dependencies.AkkaStream,
-      Dependencies.AkkaHTTP
-    )
+    libraryDependencies ++= Dependencies.Node.value,
+    scriptClasspath += "*"
   )
-  .dependsOn(langJVM, commonJVM)
-
-//lazy val discovery = project
+  .dependsOn(langJVM % "compile->compile;test->test", commonJVM % "compile->compile;test->test")
 
 lazy val it = project
   .dependsOn(node)
 
+lazy val dex = project
+  .configs(IntegrationTest)
+  .dependsOn(
+    node % "compile->compile;runtime->provided;test->test",
+    it   % "it"
+  )
+
 lazy val generator = project
   .dependsOn(it)
-  .settings(libraryDependencies += "com.github.scopt" %% "scopt" % "3.6.0")
+  .settings(
+    libraryDependencies += "com.github.scopt" %% "scopt" % "3.6.0"
+  )
+
+lazy val dexgenerator = project
+  .dependsOn(it)
+  .settings(
+    libraryDependencies += "com.github.scopt" %% "scopt" % "3.6.0"
+  )
 
 lazy val benchmark = project
   .enablePlugins(JmhPlugin)
   .dependsOn(node % "compile->compile;test->test", langJVM % "compile->compile;test->test")
-
-lazy val dexgenerator = project
-  .dependsOn(it)
-  .settings(libraryDependencies += "com.github.scopt" %% "scopt" % "3.6.0")

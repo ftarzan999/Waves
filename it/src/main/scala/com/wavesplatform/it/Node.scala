@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.FiniteDuration
 
-abstract class Node(config: Config) extends AutoCloseable {
+abstract class Node(val config: Config) extends AutoCloseable {
   lazy val log: LoggerFacade =
     LoggerFacade(LoggerFactory.getLogger(s"${getClass.getCanonicalName}.${this.name}"))
 
@@ -30,7 +30,6 @@ abstract class Node(config: Config) extends AutoCloseable {
   val address: String               = config.getString("address")
 
   def nodeApiEndpoint: URL
-  def matcherApiEndpoint: URL
   def apiKey: String
 
   /** An address which can be reached from the host running IT (may not match the declared address) */
