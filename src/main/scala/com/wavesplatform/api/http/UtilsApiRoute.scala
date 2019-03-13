@@ -19,20 +19,16 @@ import scala.concurrent.ExecutionContext
 @Path("/utils")
 @Api(value = "/utils", description = "Useful functions", position = 3, produces = "application/json")
 case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends ApiRoute {
-
   import UtilsApiRoute._
 
-  private def seed(length: Int) = {
-    val seed = new Array[Byte](length)
-    new SecureRandom().nextBytes(seed) //seed mutated here!
-    Json.obj("seed" -> Base58.encode(seed))
+  private[this] val setLimitedExecutionContext = {
+    lazy val customExecutionContext = ExecutionContext.fromExecutorService(Executors.newWorkStealingPool(settings.utilsThreadsLimit))
+    if (settings.utilsThreadsLimit <= 0) pass else withExecutionContext(customExecutionContext)
   }
 
-  override val route: Route = pathPrefix("utils") {
+  override val route: Route = (pathPrefix("utils") & setLimitedExecutionContext) {
     decompile ~ compile ~ compileContract ~ estimate ~ time ~ seedRoute ~ length ~ hashFast ~ hashSecure ~ sign ~ transactionSerialize
   }
-
-  private[this] val decompilerExecutionContext = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
 
   @Path("/script/decompile")
   @ApiOperation(value = "Decompile", notes = "Decompiles base64 script representation to string code", httpMethod = "POST")
@@ -52,7 +48,7 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
       new ApiResponse(code = 200, message = "string or error")
     ))
   def decompile: Route = path("script" / "decompile") {
-    (post & entity(as[String]) & withExecutionContext(decompilerExecutionContext)) { code =>
+    (post & entity(as[String])) { code =>
       Script.fromBase64String(code) match {
         case Left(err) => complete(err)
         case Right(script) =>
@@ -197,7 +193,7 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
       new ApiResponse(code = 200, message = "Json with peer list or error")
     ))
   def seedRoute: Route = (path("seed") & get) {
-    complete(seed(DefaultSeedSize))
+    complete(generateSeed(DefaultSeedSize))
   }
 
   @Path("/seed/{length}")
@@ -208,7 +204,7 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
     ))
   @ApiResponse(code = 200, message = "Json with error message")
   def length: Route = (path("seed" / IntNumber) & get) { length =>
-    if (length <= MaxSeedSize) complete(seed(length))
+    if (length <= MaxSeedSize) complete(generateSeed(length))
     else complete(TooBigArrayAllocation)
   }
 
@@ -306,6 +302,12 @@ case class UtilsApiRoute(timeService: Time, settings: RestAPISettings) extends A
         parseOrCreateTransaction(jsv)(tx => Json.obj("bytes" -> tx.bodyBytes().map(_.toInt & 0xff)))
       }
     }
+  }
+
+  private[this] def generateSeed(length: Int) = {
+    val seed = new Array[Byte](length)
+    new SecureRandom().nextBytes(seed) //seed mutated here!
+    Json.obj("seed" -> Base58.encode(seed))
   }
 }
 
