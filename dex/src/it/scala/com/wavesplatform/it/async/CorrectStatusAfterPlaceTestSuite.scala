@@ -1,4 +1,4 @@
-package com.wavesplatform.it.async.matcher
+package com.wavesplatform.it.async
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.wavesplatform.account.PrivateKeyAccount
@@ -6,7 +6,7 @@ import com.wavesplatform.common.utils.EitherExt2
 import com.wavesplatform.it._
 import com.wavesplatform.it.api.AsyncHttpApi.NodesAsyncHttpApi
 import com.wavesplatform.it.api.AsyncMatcherHttpApi._
-import com.wavesplatform.it.async.matcher.CorrectStatusAfterPlaceTestSuite._
+import com.wavesplatform.it.async.CorrectStatusAfterPlaceTestSuite._
 import com.wavesplatform.it.sync.createSignedIssueRequest
 import com.wavesplatform.it.transactions.NodesFromDocker
 import com.wavesplatform.it.util._

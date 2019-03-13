@@ -259,7 +259,7 @@ lazy val lang =
       test in assembly := {},
       libraryDependencies ++=
         Dependencies.Lang.value ++
-          Dependencies.Test,
+          Dependencies.test,
       resolvers += Resolver.bintrayIvyRepo("portable-scala", "sbt-plugins"),
       resolvers += Resolver.sbtPluginRepo("releases")
     )
@@ -309,7 +309,7 @@ lazy val dex = project
   .configs(IntegrationTest)
   .dependsOn(
     node % "compile->compile;runtime->provided;test->test",
-    it   % "it"
+    it   % "it;it->test"
   )
 
 lazy val generator = project

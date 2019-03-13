@@ -641,14 +641,6 @@ class BlockchainUpdaterImpl(blockchain: LevelDBWriter, spendableBalanceChanged: 
     }
   }
 
-  override def append(diff: Diff, carry: Long, block: Block): Unit = readLock {
-    blockchain.append(diff, carry, block)
-  }
-
-  override def rollbackTo(targetBlockId: ByteStr): Either[String, Seq[Block]] = readLock {
-    blockchain.rollbackTo(targetBlockId)
-  }
-
   override def transactionHeight(id: ByteStr): Option[Int] = readLock {
     ngState flatMap { ng =>
       ng.bestLiquidDiff.transactions.get(id).map(_._1)

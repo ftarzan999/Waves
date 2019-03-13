@@ -1,5 +1,7 @@
 package com.wavesplatform.it.api
 
+import java.net.URL
+
 import com.google.common.primitives.Longs
 import com.wavesplatform.account.PrivateKeyAccount
 import com.wavesplatform.common.state.ByteStr
@@ -45,17 +47,19 @@ object AsyncMatcherHttpApi extends Assertions {
 
   implicit class MatcherAsyncHttpApi(matcherNode: Node) extends NodeAsyncHttpApi(matcherNode) {
 
+    def matcherApiEndpoint: URL = new URL(s"http://localhost:${matcherNode.nodeExternalPort(matcherNode.config.getInt("waves.matcher.port"))}")
+
     def matcherGet(path: String,
                    f: RequestBuilder => RequestBuilder = identity,
                    statusCode: Int = HttpConstants.ResponseStatusCodes.OK_200,
                    waitForStatus: Boolean = false): Future[Response] =
-      retrying(f(_get(s"${matcherNode.matcherApiEndpoint}$path")).build(), statusCode = statusCode, waitForStatus = waitForStatus)
+      retrying(f(_get(s"$matcherApiEndpoint$path")).build(), statusCode = statusCode, waitForStatus = waitForStatus)
 
     def matcherGetWithApiKey(path: String,
                              f: RequestBuilder => RequestBuilder = identity,
                              statusCode: Int = HttpConstants.ResponseStatusCodes.OK_200,
                              waitForStatus: Boolean = false): Future[Response] = retrying(
-      _get(s"${matcherNode.matcherApiEndpoint}$path")
+      _get(s"$matcherApiEndpoint$path")
         .withApiKey(matcherNode.apiKey)
         .build()
     )
@@ -65,7 +69,7 @@ object AsyncMatcherHttpApi extends Assertions {
                                 timestamp: Long = System.currentTimeMillis(),
                                 f: RequestBuilder => RequestBuilder = identity): Future[Response] =
       retrying {
-        _get(s"${matcherNode.matcherApiEndpoint}$path")
+        _get(s"$matcherApiEndpoint$path")
           .setHeader("Timestamp", timestamp)
           .setHeader("Signature", Base58.encode(crypto.sign(sender, sender.publicKey ++ Longs.toByteArray(timestamp))))
           .build()
@@ -76,7 +80,7 @@ object AsyncMatcherHttpApi extends Assertions {
 
     def matcherPost[A: Writes](path: String, body: A, waitForStatus: Boolean = false): Future[Response] =
       post(
-        s"${matcherNode.matcherApiEndpoint}$path",
+        s"$matcherApiEndpoint$path",
         (rb: RequestBuilder) =>
           rb.setHeader("Content-type", "application/json")
             .setHeader("Accept", "application/json")
@@ -86,7 +90,7 @@ object AsyncMatcherHttpApi extends Assertions {
 
     def postWithAPiKey(path: String): Future[Response] =
       post(
-        s"${matcherNode.matcherApiEndpoint}$path",
+        s"$matcherApiEndpoint$path",
         (rb: RequestBuilder) =>
           rb.withApiKey(matcherNode.apiKey)
             .setHeader("Content-type", "application/json;charset=utf-8")
@@ -134,8 +138,7 @@ object AsyncMatcherHttpApi extends Assertions {
       matcherGet(s"/matcher/orderbook/${assetPair.toUri}").as[OrderBookResponse]
 
     def deleteOrderBook(assetPair: AssetPair): Future[MessageMatcherResponse] =
-      retrying(_delete(s"${matcherNode.matcherApiEndpoint}/matcher/orderbook/${assetPair.toUri}").withApiKey(matcherNode.apiKey).build(),
-               statusCode = 202)
+      retrying(_delete(s"$matcherApiEndpoint/matcher/orderbook/${assetPair.toUri}").withApiKey(matcherNode.apiKey).build(), statusCode = 202)
         .as[MessageMatcherResponse]
 
     def marketStatus(assetPair: AssetPair): Future[MarketStatusResponse] =

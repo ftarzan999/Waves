@@ -287,16 +287,10 @@ class Docker(suiteConfig: Config = empty, tag: String = "", enableProfiling: Boo
     val restApiPort = settings.restAPISettings.port
     val networkPort = settings.networkSettings.bindAddress.getPort
 
-    val containerInfo = inspectContainer(containerId)
-    val ports         = containerInfo.networkSettings().ports()
-
+    val containerInfo  = inspectContainer(containerId)
     val wavesIpAddress = containerInfo.networkSettings().networks().get(wavesNetwork.name()).ipAddress()
 
-    NodeInfo(
-      new URL(s"http://localhost:${extractHostPort(ports, restApiPort)}"),
-      new InetSocketAddress("localhost", extractHostPort(ports, networkPort)),
-      new InetSocketAddress(wavesIpAddress, networkPort)
-    )
+    NodeInfo(restApiPort, networkPort, wavesIpAddress, containerInfo.networkSettings().ports())
   }
 
   private def inspectContainer(containerId: String): ContainerInfo = {
@@ -603,12 +597,17 @@ object Docker {
       .map { case (k, v) => s"-D$k=$v" }
       .mkString(" ")
 
-  private def extractHostPort(m: JMap[String, JList[PortBinding]], containerPort: Int) =
-    m.get(s"$containerPort/tcp").get(0).hostPort().toInt
+  case class NodeInfo(restApiPort: Int, networkPort: Int, wavesIpAddress: String, ports: JMap[String, JList[PortBinding]]) {
+    val nodeApiEndpoint: URL                       = new URL(s"http://localhost:${externalPort(restApiPort)}")
+    val hostNetworkAddress: InetSocketAddress      = new InetSocketAddress("localhost", externalPort(networkPort))
+    val containerNetworkAddress: InetSocketAddress = new InetSocketAddress(wavesIpAddress, networkPort)
 
-  case class NodeInfo(nodeApiEndpoint: URL, hostNetworkAddress: InetSocketAddress, containerNetworkAddress: InetSocketAddress)
+    def externalPort(internalPort: Int): Int = ports.get(s"$internalPort/tcp").get(0).hostPort().toInt
+  }
 
   class DockerNode(config: Config, val containerId: String, private[Docker] var nodeInfo: NodeInfo) extends Node(config) {
+    override def nodeExternalPort(internalPort: Int): Int = nodeInfo.externalPort(internalPort)
+
     override def nodeApiEndpoint: URL = nodeInfo.nodeApiEndpoint
 
     override val apiKey = "integration-test-rest-api"

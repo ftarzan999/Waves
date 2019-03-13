@@ -25,7 +25,7 @@ object Dependencies {
 
   private val KindProjector = compilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
 
-  val ScalaTest                  = "org.scalatest" %% "scalatest" % "3.0.5" // 3.0.6
+  val ScalaTest                  = "org.scalatest" %% "scalatest" % "3.0.6"
   private val AkkaHttp           = akkaHttpModule("akka-http")
   private val JacksonModuleScala = jacksonModule("module", "module-scala").withCrossVersion(CrossVersion.Binary())
   private val GoogleGuava        = "com.google.guava" % "guava" % "27.0.1-jre"
@@ -103,15 +103,18 @@ object Dependencies {
     "org.asynchttpclient" % "async-http-client" % "2.7.0"
   )
 
-  lazy val Test = Seq(
+  lazy val test = Seq(
     ScalaTest,
     Logback,
     "org.scalacheck"      %% "scalacheck"                  % "1.14.0",
     "io.github.amrhassan" %% "scalacheck-cats"             % "0.4.0",
-    "org.scalatest"       %% "scalatest"                   % "3.0.5", // 3.0.6
     "org.mockito"         % "mockito-all"                  % "1.10.19",
-    "org.scalamock"       %% "scalamock-scalatest-support" % "3.6.0",
-  ).map(_ % "test")
+    "org.scalamock"       %% "scalamock-scalatest-support" % "3.6.0"
+  ).map(_ % Test)
+
+  lazy val itTest = Seq(
+    "org.scalacheck" %% "scalacheck" % "1.14.0"
+  ).map(_ % IntegrationTest)
 
   lazy val Node = Def.setting(
     Seq(
@@ -125,9 +128,9 @@ object Dependencies {
       kamonModule("influxdb", "1.0.2"),
       "org.influxdb" % "influxdb-java" % "2.14",
       GoogleGuava,
-      "com.google.code.findbugs"     % "jsr305"             % "3.0.2" % "compile", // javax.annotation stubs
-      "com.typesafe.play"            %% "play-json"         % "2.7.1",
-      "org.ethereum"                 % "leveldbjni-all"     % "1.18.3",
+      "com.google.code.findbugs" % "jsr305"         % "3.0.2" % "compile", // javax.annotation stubs
+      "com.typesafe.play"        %% "play-json"     % "2.7.1",
+      "org.ethereum"             % "leveldbjni-all" % "1.18.3",
       // "io.swagger"                   %% "swagger-scala-module" % "1.0.4",
       "com.github.swagger-akka-http" %% "swagger-akka-http" % "1.0.0",
       jacksonModule("core", "databind"),
@@ -140,7 +143,7 @@ object Dependencies {
       monixModule("reactive").value,
       nettyModule("handler"),
       akkaHttpModule("akka-http-testkit") % "test"
-    ) ++ Test)
+    ) ++ test)
 
   lazy val protobuf = Def.setting {
     val version = scalapb.compiler.Version.scalapbVersion
@@ -148,12 +151,12 @@ object Dependencies {
       // "com.google.protobuf" % "protobuf-java" % "3.4.0",
       "com.thesamet.scalapb" %%% "scalapb-runtime" % version,
       "com.thesamet.scalapb" %%% "scalapb-runtime" % version % "protobuf",
-      "com.thesamet.scalapb" %% "scalapb-json4s" % "0.7.0"
+      "com.thesamet.scalapb" %% "scalapb-json4s"   % "0.7.0"
     )
   }
 
   lazy val grpc = Seq(
-    "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+    "io.grpc"              % "grpc-netty"            % scalapb.compiler.Version.grpcJavaVersion,
     "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
   )
 }

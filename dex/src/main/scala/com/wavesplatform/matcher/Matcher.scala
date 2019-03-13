@@ -21,10 +21,6 @@ import com.wavesplatform.matcher.market.{MatcherActor, MatcherTransactionWriter,
 import com.wavesplatform.matcher.model.{ExchangeTransactionCreator, OrderBook, OrderValidator}
 import com.wavesplatform.matcher.queue._
 import com.wavesplatform.state.VolumeAndFee
-import com.wavesplatform.network._
-import com.wavesplatform.settings.WavesSettings
-import com.wavesplatform.state.{Blockchain, VolumeAndFee}
-import com.wavesplatform.transaction.Asset
 import com.wavesplatform.transaction.Asset.{IssuedAsset, Waves}
 import com.wavesplatform.transaction.assets.exchange.{AssetPair, Order}
 import com.wavesplatform.utils.{ErrorStartingMatcher, ScorexLogging, forceStopApplication}
@@ -180,16 +176,15 @@ class Matcher(context: Context) extends Extension with ScorexLogging {
           context.balanceChanges,
           settings,
           address =>
-            Props(
-              new AddressActor(
-                address,
-                context.spendableBalance(address, _),
-                5.seconds,
-                context.time,
-                orderDb,
-                id => context.blockchain.filledVolumeAndFee(id) != VolumeAndFee.empty,
-                matcherQueue.storeEvent
-              ))
+            Props(new AddressActor(
+              address,
+              context.spendableBalance(address, _),
+              5.seconds,
+              context.time,
+              orderDb,
+              id => context.blockchain.filledVolumeAndFee(id) != VolumeAndFee.empty,
+              matcherQueue.storeEvent
+            ))
         )),
       "addresses"
     )

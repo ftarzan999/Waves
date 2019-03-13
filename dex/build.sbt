@@ -12,6 +12,6 @@ libraryDependencies ++= Seq(
 ) ++ Seq(
   akkaModule("testkit"),
   akkaModule("persistence-tck")
-).map(_ % "test") ++ Dependencies.Test
+).map(_ % "test") ++ Dependencies.test ++ Dependencies.itTest
 
 docker / additionalFiles += (Universal / stage).value

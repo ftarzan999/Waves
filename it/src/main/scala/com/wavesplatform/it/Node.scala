@@ -29,6 +29,7 @@ abstract class Node(val config: Config) extends AutoCloseable {
   val publicKey: PublicKeyAccount   = PublicKeyAccount.fromBase58String(config.getString("public-key")).explicitGet()
   val address: String               = config.getString("address")
 
+  def nodeExternalPort(internalPort: Int): Int
   def nodeApiEndpoint: URL
   def apiKey: String
 
