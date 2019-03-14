@@ -13,14 +13,14 @@ object DockerSettings {
       dockerfile := {
         val optWavesFiles = (LocalProject("node") / Universal / stage).value +: {
           Seq(
-            (LocalProject("it") / Compile / resourceDirectory).value / "template.conf",
-            (LocalProject("it") / Default / sourceDirectory).value / "container" / "start-waves.sh"
+            (LocalProject("nodeIt") / Compile / resourceDirectory).value / "template.conf",
+            (LocalProject("nodeIt") / sourceDirectory).value / "container" / "start-waves.sh"
           ) ++
             additionalFiles.value
         }
 
         val yourKitArchive = "YourKit-JavaProfiler-2019.1-docker.zip"
-        val bin = "/opt/waves/start-waves.sh"
+        val bin            = "/opt/waves/start-waves.sh"
 
         new Dockerfile {
           from("anapsix/alpine-java:8_server-jre")

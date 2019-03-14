@@ -43,6 +43,8 @@ class Docker(suiteConfig: Config = empty, tag: String = "", enableProfiling: Boo
 
   import Docker._
 
+  private val imageName = "com.wavesplatform/node-it:latest"
+
   private val http = asyncHttpClient(
     config()
       .setNettyTimer(timer)
@@ -248,7 +250,7 @@ class Docker(suiteConfig: Config = empty, tag: String = "", enableProfiling: Boo
 
       val containerConfig = ContainerConfig
         .builder()
-        .image("com.wavesplatform/it:latest")
+        .image(imageName)
         .exposedPorts(s"$ProfilerPort", restApiPort, networkPort, matcherApiPort)
         .networkingConfig(ContainerConfig.NetworkingConfig.create(Map(
           wavesNetwork.name() -> endpointConfigFor(nodeName)

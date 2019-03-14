@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 import sbtassembly.MergeStrategy
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
+import sbtdocker.DockerPlugin
 
 enablePlugins(JavaServerAppPackaging, JDebPackaging, SystemdPlugin, GitVersioning)
 scalafmtOnCompile in ThisBuild := true
@@ -17,7 +18,7 @@ val versionSource = Def.task {
   // In case of not updating the version nodes build from headless sources will fail to connect to newer versions
   val FallbackVersion = (0, 16, 2)
 
-  val versionFile      = (sourceManaged in Compile).value / "com" / "wavesplatform" / "Version.scala"
+  val versionFile      = sourceManaged.value / "com" / "wavesplatform" / "Version.scala"
   val versionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
   val (major, minor, patch) = version.value match {
     case versionExtractor(ma, mi, pa) => (ma.toInt, mi.toInt, pa.toInt)
@@ -113,16 +114,6 @@ inTask(assembly)(
       case PathList("META-INF", "aop.xml")                      => aopMerge
       case other                                                => (assemblyMergeStrategy in assembly).value(other)
     }
-  ))
-
-inConfig(Compile)(
-  Seq(
-    mainClass := Some("com.wavesplatform.Application"),
-    publishArtifact in packageDoc := false,
-    publishArtifact in packageSrc := false,
-    sourceGenerators += versionSource,
-    PB.targets += scalapb.gen(flatPackage = true) -> (sourceManaged in Compile).value,
-    PB.deleteTargetDirectory := false
   ))
 
 inConfig(Test)(
@@ -294,32 +285,50 @@ lazy val langJS  = lang.js
 lazy val langJVM = lang.jvm
 
 lazy val node = project
-  .in(file("."))
+  .enablePlugins(ExtensionPackaging) //.configs(IntegrationTest)
   .settings(
-    coverageExcludedPackages := "",
-    libraryDependencies ++= Dependencies.Node.value,
-    scriptClasspath += "*"
+    Compile / mainClass := Some("com.wavesplatform.Application"),
+    libraryDependencies ++= Dependencies.Node.value, /*++ Dependencies.itKit.map(_ % IntegrationTest*/
+    Compile / sourceGenerators += versionSource,
+    Compile / PB.targets += scalapb.gen(flatPackage = true) -> (Compile / sourceManaged).value,
+    Compile / PB.deleteTargetDirectory := false,
+    Compile / publishArtifact in packageDoc := false,
+    Compile / publishArtifact in packageSrc := false,
+    coverageExcludedPackages := ""
   )
   .dependsOn(langJVM % "compile->compile;test->test", commonJVM % "compile->compile;test->test")
 
-lazy val it = project
+lazy val nodeIt = project
+  .in(file(".") / "node" / "src" / "it")
+  .enablePlugins(sbtdocker.DockerPlugin)
+  .settings(DockerSettings.settings)
+  .settings(
+    sourceDirectory := baseDirectory.value,
+    target := (node / Compile / target).value / "it",
+    libraryDependencies ++= Dependencies.itKit,
+    dependencyOverrides ++= Dependencies.EnforcedVersions.value,
+    docker / imageNames := Seq(ImageName("com.wavesplatform/node-it")),
+    scriptClasspath := Seq("*") // +=
+  )
   .dependsOn(node)
 
 lazy val dex = project
   .configs(IntegrationTest)
+  .settings(
+    docker / imageNames := Seq(ImageName("com.wavesplatform/dex-it"))
+  )
   .dependsOn(
-    node % "compile->compile;runtime->provided;test->test",
-    it   % "it;it->test"
+    node % "compile->compile;runtime->provided;test->test" // ;it->it
   )
 
 lazy val generator = project
-  .dependsOn(it)
+  .dependsOn(node % "compile->test")
   .settings(
     libraryDependencies += "com.github.scopt" %% "scopt" % "3.6.0"
   )
 
 lazy val dexgenerator = project
-  .dependsOn(it)
+  .dependsOn(dex)
   .settings(
     libraryDependencies += "com.github.scopt" %% "scopt" % "3.6.0"
   )

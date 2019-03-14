@@ -1,8 +1,9 @@
 import com.typesafe.sbt.SbtNativePackager.Universal
 import com.typesafe.sbt.packager.Compat._
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import com.typesafe.sbt.packager.universal.UniversalDeployPlugin
 import sbt.Keys._
-import sbt.{Def, _}
+import sbt._
 import sbtdocker.DockerPlugin
 
 object ExtensionPackaging extends AutoPlugin {
@@ -10,9 +11,9 @@ object ExtensionPackaging extends AutoPlugin {
   object autoImport extends ExtensionKeys
   import autoImport._
 
-  override def requires: Plugins = UniversalDeployPlugin && DockerPlugin
+  override def requires: Plugins = UniversalDeployPlugin && JavaServerAppPackaging // && DockerPlugin
 
-  override def projectSettings: Seq[Def.Setting[_]] = Defaults.itSettings ++ DockerSettings.settings ++ Seq(
+  override def projectSettings: Seq[Def.Setting[_]] = Defaults.itSettings ++ Seq(
     publishArtifact in packageDoc := false,
     publishArtifact in packageSrc := false,
     javaOptions in Universal := Nil,
@@ -31,13 +32,6 @@ object ExtensionPackaging extends AutoPlugin {
     classpathOrdering ++= excludeProvidedArtifacts((dependencyClasspath in Runtime).value, findProvidedArtifacts.value),
     mappings in Universal ++= classpathOrdering.value,
     classpath := makeRelativeClasspathNames(classpathOrdering.value),
-//    docker / dockerfile := {
-//      val pluginPackage     = (Universal / packageBin).value
-//      val pluginPackageName = pluginPackage.getName
-//      (docker / dockerfile).value
-//        .add(pluginPackage, "/tmp/")
-//        .runRaw(s"unzip -o /tmp/$pluginPackageName.zip -d /opt/waves && rm -f /tmp/$pluginPackageName")
-//    }
   )
 
   private def makeRelativeClasspathNames(mappings: Seq[(File, String)]): Seq[String] =
