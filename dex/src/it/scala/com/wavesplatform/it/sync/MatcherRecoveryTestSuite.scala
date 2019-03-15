@@ -3,10 +3,9 @@ package com.wavesplatform.it.sync
 import com.typesafe.config.{Config, ConfigFactory}
 import com.wavesplatform.it.Docker.DockerNode
 import com.wavesplatform.it._
-import com.wavesplatform.it.api.MatcherState
 import com.wavesplatform.it.api.SyncHttpApi._
 import com.wavesplatform.it.api.SyncMatcherHttpApi._
-import com.wavesplatform.it.matcher.{MatcherCommand, MatcherSuiteBase}
+import com.wavesplatform.it.api.{MatcherCommand, MatcherState}
 import com.wavesplatform.it.sync.config.MatcherDefaultConfig._
 import com.wavesplatform.matcher.queue.QueueEventWithMeta
 import com.wavesplatform.transaction.Asset.Waves

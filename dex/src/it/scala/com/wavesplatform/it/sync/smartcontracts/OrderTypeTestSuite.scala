@@ -3,9 +3,9 @@ package com.wavesplatform.it.sync.smartcontracts
 import com.typesafe.config.Config
 import com.wavesplatform.api.http.TransactionNotAllowedByAccountScript
 import com.wavesplatform.common.state.ByteStr
+import com.wavesplatform.it.MatcherSuiteBase
 import com.wavesplatform.it.api.SyncHttpApi._
 import com.wavesplatform.it.api.SyncMatcherHttpApi._
-import com.wavesplatform.it.matcher.MatcherSuiteBase
 import com.wavesplatform.it.sync._
 import com.wavesplatform.it.sync.config.MatcherPriceAssetConfig._
 import com.wavesplatform.it.util._

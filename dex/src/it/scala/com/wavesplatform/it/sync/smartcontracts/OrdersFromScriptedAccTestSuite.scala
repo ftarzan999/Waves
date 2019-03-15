@@ -3,9 +3,9 @@ package com.wavesplatform.it.sync.smartcontracts
 import com.typesafe.config.{Config, ConfigFactory}
 import com.wavesplatform.common.state.ByteStr
 import com.wavesplatform.features.BlockchainFeatures
+import com.wavesplatform.it.MatcherSuiteBase
 import com.wavesplatform.it.api.SyncHttpApi._
 import com.wavesplatform.it.api.SyncMatcherHttpApi._
-import com.wavesplatform.it.matcher.MatcherSuiteBase
 import com.wavesplatform.it.sync._
 import com.wavesplatform.it.sync.config.MatcherDefaultConfig._
 import com.wavesplatform.it.util._

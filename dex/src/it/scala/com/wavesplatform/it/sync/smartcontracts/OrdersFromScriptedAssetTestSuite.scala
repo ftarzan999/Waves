@@ -5,9 +5,9 @@ import com.wavesplatform.account.{AddressScheme, PrivateKeyAccount}
 import com.wavesplatform.api.http.TransactionNotAllowedByAssetScript
 import com.wavesplatform.common.utils.EitherExt2
 import com.wavesplatform.features.BlockchainFeatures
+import com.wavesplatform.it.MatcherSuiteBase
 import com.wavesplatform.it.api.SyncHttpApi.NodeExtSync
 import com.wavesplatform.it.api.SyncMatcherHttpApi._
-import com.wavesplatform.it.matcher.MatcherSuiteBase
 import com.wavesplatform.it.sync.config.MatcherDefaultConfig
 import com.wavesplatform.it.sync.createSignedIssueRequest
 import com.wavesplatform.it.util._

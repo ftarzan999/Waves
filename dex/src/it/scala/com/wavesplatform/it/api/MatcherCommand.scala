@@ -1,4 +1,4 @@
-package com.wavesplatform.it.matcher
+package com.wavesplatform.it.api
 
 import com.wavesplatform.account.PrivateKeyAccount
 import com.wavesplatform.it.Node

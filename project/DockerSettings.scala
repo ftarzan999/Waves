@@ -13,8 +13,8 @@ object DockerSettings {
       dockerfile := {
         val optWavesFiles = (LocalProject("node") / Universal / stage).value +: {
           Seq(
-            (LocalProject("nodeIt") / Compile / resourceDirectory).value / "template.conf",
-            (LocalProject("nodeIt") / sourceDirectory).value / "container" / "start-waves.sh"
+            (LocalProject("node-it") / Test / resourceDirectory).value / "template.conf",
+            (LocalProject("node-it") / sourceDirectory).value / "container" / "start-waves.sh"
           ) ++
             additionalFiles.value
         }

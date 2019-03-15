@@ -1,10 +1,10 @@
 package com.wavesplatform.it.sync
 
 import com.typesafe.config.Config
+import com.wavesplatform.it.MatcherSuiteBase
 import com.wavesplatform.it.api.LevelResponse
 import com.wavesplatform.it.api.SyncHttpApi._
 import com.wavesplatform.it.api.SyncMatcherHttpApi._
-import com.wavesplatform.it.matcher.MatcherSuiteBase
 import com.wavesplatform.it.sync.config.MatcherPriceAssetConfig._
 import com.wavesplatform.transaction.assets.exchange.OrderType.BUY
 import com.wavesplatform.transaction.assets.exchange.{Order, OrderType}

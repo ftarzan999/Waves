@@ -2,10 +2,10 @@ package com.wavesplatform.it.sync
 
 import com.typesafe.config.Config
 import com.wavesplatform.common.state.ByteStr
+import com.wavesplatform.it.MatcherSuiteBase
 import com.wavesplatform.it.api.SyncHttpApi._
 import com.wavesplatform.it.api.SyncMatcherHttpApi._
 import com.wavesplatform.it.api.{AssetDecimalsInfo, LevelResponse}
-import com.wavesplatform.it.matcher.MatcherSuiteBase
 import com.wavesplatform.it.sync.config.MatcherDefaultConfig._
 import com.wavesplatform.it.util._
 import com.wavesplatform.transaction.Asset.{IssuedAsset, Waves}

@@ -1,10 +1,10 @@
-package com.wavesplatform.it.matcher
+package com.wavesplatform.it
 
 import com.typesafe.config.Config
-import com.wavesplatform.it._
 import com.wavesplatform.it.transactions.NodesFromDocker
-import org.scalatest._
 import com.wavesplatform.it.util._
+import org.scalatest._
+
 import scala.concurrent.ExecutionContext
 
 abstract class MatcherSuiteBase

@@ -299,12 +299,16 @@ lazy val node = project
   .dependsOn(langJVM % "compile;test->test", commonJVM % "compile;test->test")
 
 // To run integration tests from IDEA, enable the "sbt" checkbox
-lazy val nodeIt = project
+lazy val `node-it` = project
   .in(file(".") / "node" / "src" / "it")
   .enablePlugins(sbtdocker.DockerPlugin)
   .settings(DockerSettings.settings)
+  .settings(ItSettings.settings)
   .settings(
+    name := "NODE integration tests",
+    // Hacks to support integration tests in IDEA: https://youtrack.jetbrains.com/issue/SCL-14363#focus=streamItem-27-3061842.0-0
     sourceDirectory := baseDirectory.value,
+    Test / sourceDirectory := baseDirectory.value,
     target := (node / Compile / target).value / "it",
     libraryDependencies ++= Dependencies.itKit,
     dependencyOverrides ++= Dependencies.EnforcedVersions.value,
@@ -315,18 +319,20 @@ lazy val nodeIt = project
 
 lazy val dex = project
   .settings(
+    name := "DEX",
     libraryDependencies ++= Dependencies.test
   )
   .dependsOn(
     node % "compile;test->test;runtime->provided"
   )
 
-lazy val dexIt = project
+lazy val `dex-it` = project
   .in(file(".") / "dex" / "src" / "it")
   .enablePlugins(sbtdocker.DockerPlugin)
   .settings(DockerSettings.settings)
   .settings(ItSettings.settings)
   .settings(
+    name := "DEX integration tests",
     sourceDirectory := baseDirectory.value,
     Test / sourceDirectory := baseDirectory.value,
     target := (dex / Compile / target).value / "it",
@@ -339,7 +345,7 @@ lazy val dexIt = project
   )
   .dependsOn(
     dex,
-    nodeIt % "compile;test->test"
+    `node-it` % "compile;test->test"
   )
 
 lazy val generator = project
