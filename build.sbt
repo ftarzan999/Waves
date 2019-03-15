@@ -328,6 +328,7 @@ lazy val dexIt = project
   .settings(ItSettings.settings)
   .settings(
     sourceDirectory := baseDirectory.value,
+    Test / sourceDirectory := baseDirectory.value,
     target := (dex / Compile / target).value / "it",
     libraryDependencies ++= Dependencies.test,
     // dependencyOverrides ++= Dependencies.EnforcedVersions.value,
