@@ -114,7 +114,7 @@ object Dependencies {
 
   lazy val itTest = Seq(
     "org.scalacheck" %% "scalacheck" % "1.14.0"
-  ).map(_ % IntegrationTest)
+  ).map(_ % Test)
 
   lazy val Node = Def.setting(
     Seq(

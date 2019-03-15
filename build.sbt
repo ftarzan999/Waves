@@ -296,8 +296,9 @@ lazy val node = project
     Compile / publishArtifact in packageSrc := false,
     coverageExcludedPackages := ""
   )
-  .dependsOn(langJVM % "compile->compile;test->test", commonJVM % "compile->compile;test->test")
+  .dependsOn(langJVM % "compile;test->test", commonJVM % "compile;test->test")
 
+// To run integration tests from IDEA, enable the "sbt" checkbox
 lazy val nodeIt = project
   .in(file(".") / "node" / "src" / "it")
   .enablePlugins(sbtdocker.DockerPlugin)
@@ -313,12 +314,31 @@ lazy val nodeIt = project
   .dependsOn(node)
 
 lazy val dex = project
-  .configs(IntegrationTest)
   .settings(
-    docker / imageNames := Seq(ImageName("com.wavesplatform/dex-it"))
+    libraryDependencies ++= Dependencies.test
   )
   .dependsOn(
-    node % "compile->compile;runtime->provided;test->test" // ;it->it
+    node % "compile;test->test;runtime->provided"
+  )
+
+lazy val dexIt = project
+  .in(file(".") / "dex" / "src" / "it")
+  .enablePlugins(sbtdocker.DockerPlugin)
+  .settings(DockerSettings.settings)
+  .settings(ItSettings.settings)
+  .settings(
+    sourceDirectory := baseDirectory.value,
+    target := (dex / Compile / target).value / "it",
+    libraryDependencies ++= Dependencies.test,
+    // dependencyOverrides ++= Dependencies.EnforcedVersions.value,
+    docker / imageNames := Seq(ImageName("com.wavesplatform/dex-it")),
+    docker / DockerSettings.additionalFiles += (dex / Universal / stage).value,
+    Test / fork := true
+    // scriptClasspath := Seq("*") // +=
+  )
+  .dependsOn(
+    dex,
+    nodeIt % "compile;test->test"
   )
 
 lazy val generator = project

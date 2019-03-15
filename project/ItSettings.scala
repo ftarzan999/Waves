@@ -8,19 +8,19 @@ import sbt._
 object ItSettings {
   val logDirectory = taskKey[File]("Directory with integration test logs")
 
-  val settings: Seq[Def.Setting[_]] = inConfig(IntegrationTest)(
+  val settings: Seq[Def.Setting[_]] = inConfig(Test)(
     Seq(
-      logDirectory := {
+      ThisProject / logDirectory := {
         val runId = Option(System.getenv("RUN_ID")).getOrElse {
           val formatter = DateTimeFormatter.ofPattern("MM-dd--HH_mm_ss")
-          s"local-${formatter.format(LocalDateTime.now())}"
+          s"${name.value}-${formatter.format(LocalDateTime.now())}"
         }
         val r = target.value / "logs" / runId
         IO.createDirectory(r)
         r
       },
-      testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-fFW", (logDirectory.value / "summary.log").toString),
-      testGrouping := {
+      ThisProject / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-fFW", (logDirectory.value / "summary.log").toString),
+      ThisProject / testGrouping := {
         // ffs, sbt!
         // https://github.com/sbt/sbt/issues/3266
         val javaHomeValue     = javaHome.value
@@ -45,7 +45,7 @@ object ItSettings {
                   "-XX:+IgnoreUnrecognizedVMOptions",
                   "--add-modules=java.xml.bind",
                   "-Dwaves.it.logging.appender=FILE",
-                  s"-Dwaves.it.logging.dir=${logDirectoryValue / suite.name.replaceAll("""(\w)\w*\.""", "$1.")}"
+                  s"-Dwaves.it.logging.dir=${logDirectoryValue / suite.name.replaceAll("""(\w)\w*\.""", "$1.")}" // !!!!!!!!! < ========
                 ) ++ javaOptionsValue,
                 connectInput = false,
                 envVars = envVarsValue

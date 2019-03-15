@@ -7,7 +7,7 @@ import sbtdocker.DockerPlugin.autoImport._
 object DockerSettings {
   val additionalFiles = taskKey[Seq[File]]("Additional files to copy to /opt/waves")
 
-  val settings: Seq[Def.Setting[_]] = inTask(docker)(
+  def settings: Seq[Def.Setting[_]] = inTask(docker)(
     Seq(
       additionalFiles := Seq.empty,
       dockerfile := {
