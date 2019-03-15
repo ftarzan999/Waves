@@ -305,7 +305,7 @@ lazy val `node-it` = project
   .settings(DockerSettings.settings)
   .settings(ItSettings.settings)
   .settings(
-    name := "NODE integration tests",
+    description := "NODE integration tests",
     // Hacks to support integration tests in IDEA: https://youtrack.jetbrains.com/issue/SCL-14363#focus=streamItem-27-3061842.0-0
     sourceDirectory := baseDirectory.value,
     Test / sourceDirectory := baseDirectory.value,
@@ -332,7 +332,7 @@ lazy val `dex-it` = project
   .settings(DockerSettings.settings)
   .settings(ItSettings.settings)
   .settings(
-    name := "DEX integration tests",
+    description := "DEX integration tests",
     sourceDirectory := baseDirectory.value,
     Test / sourceDirectory := baseDirectory.value,
     target := (dex / Compile / target).value / "it",

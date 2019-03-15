@@ -13,7 +13,7 @@ object ItSettings {
       ThisProject / logDirectory := {
         val runId = Option(System.getenv("RUN_ID")).getOrElse {
           val formatter = DateTimeFormatter.ofPattern("MM-dd--HH_mm_ss")
-          s"${name.value}-${formatter.format(LocalDateTime.now())}"
+          s"${normalizedName.value}-${formatter.format(LocalDateTime.now())}"
         }
         val r = target.value / "logs" / runId
         IO.createDirectory(r)
